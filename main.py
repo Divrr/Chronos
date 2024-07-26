@@ -36,6 +36,14 @@ async def time(inter):
 async def start(inter: disnake.ApplicationCommandInteraction):
     start = int(inter.created_at.timestamp())
     user = inter.user
+
+    # Make sure they have not started more than one timer
+    result = cur.execute(f"SELECT id, start FROM time WHERE end IS NULL AND userid={user.id}").fetchone()
+    if result is not None:
+        start_time = result[1]
+        await inter.response.send_message(f"You have already started a timer <t:{start_time}:R>.")
+        return
+
     cur.execute(f"INSERT INTO time(userid, start) VALUES ({user.id}, {start})")
     con.commit()
     await inter.response.send_message(f"Starting timer for {user.mention} at <t:{start}:t>.")
