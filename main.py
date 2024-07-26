@@ -34,11 +34,24 @@ async def time(inter):
 
 @time.sub_command(description="Starts a timer for you")
 async def start(inter: disnake.ApplicationCommandInteraction):
-    now = int(inter.created_at.timestamp())
+    start = int(inter.created_at.timestamp())
     user = inter.user
-    cur.execute(f"INSERT INTO time(userid, start) VALUES ({user.id}, {now})")
+    cur.execute(f"INSERT INTO time(userid, start) VALUES ({user.id}, {start})")
     con.commit()
-    await inter.response.send_message(f"Starting timer for {user.mention} at <t:{now}:t>")
+    await inter.response.send_message(f"Starting timer for {user.mention} at <t:{start}:t>.")
+
+
+@time.sub_command(description="Stops any previous timers")
+async def stop(inter: disnake.ApplicationCommandInteraction):
+    end = int(inter.created_at.timestamp())
+    user = inter.user
+    cur.execute(f"""
+    UPDATE OR ROLLBACK time
+        SET end = {end}
+        WHERE userid = {user.id};
+    """)
+    con.commit()
+    await inter.response.send_message(f"Stopped for {user.mention} at <t:{end}:t>.")
 
 
 bot.run(os.getenv('DISCORD_TOKEN'))
