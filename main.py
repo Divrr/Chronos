@@ -9,6 +9,8 @@ cur = con.cursor()
 cur.execute("""
 CREATE TABLE IF NOT EXISTS time(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    title VARCHAR(64),
+    comment VARCHAR(256),
     userid INTEGER NOT NULL,
     start INTEGER NOT NULL,
     end INTEGER)
@@ -31,20 +33,20 @@ bot = commands.Bot(
 async def time(inter):
     pass
 
-
+# TODO title option, comment option
 @time.sub_command(description="Starts a timer for you")
-async def start(inter: disnake.ApplicationCommandInteraction):
+async def start(inter: disnake.ApplicationCommandInteraction, title: str = ""):
     start = int(inter.created_at.timestamp())
     user = inter.user
 
     # Make sure they have not started more than one timer
     result = cur.execute(f"SELECT id, start FROM time WHERE end IS NULL AND userid={user.id}").fetchone()
     if result is not None:
-        start_time = result[1]
+        entry_id, start_time = result
         await inter.response.send_message(f"You have already started a timer <t:{start_time}:R>.")
         return
 
-    cur.execute(f"INSERT INTO time(userid, start) VALUES ({user.id}, {start})")
+    cur.execute(f"INSERT INTO time(title, userid, start) VALUES ('{title}', {user.id}, {start})")
     con.commit()
     await inter.response.send_message(f"Starting timer for {user.mention} at <t:{start}:t>.")
 
