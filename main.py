@@ -2,6 +2,17 @@ import disnake
 from disnake.ext import commands
 import logging
 import os
+import sqlite3
+
+con = sqlite3.connect("tutorial.db")
+cur = con.cursor()
+cur.execute("""
+CREATE TABLE IF NOT EXISTS time(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    userid INTEGER NOT NULL,
+    start INTEGER NOT NULL,
+    end INTEGER)
+""")
 
 logging.basicConfig(level=logging.INFO)
 intents = disnake.Intents.all()
@@ -21,15 +32,13 @@ async def time(inter):
     pass
 
 
-@time.sub_command()
+@time.sub_command(description="Starts a timer for you")
 async def start(inter: disnake.ApplicationCommandInteraction):
-    """
-    Starts a timer for you
-    """
-    now = inter.created_at.timestamp()
+    now = int(inter.created_at.timestamp())
     user = inter.user
-
-    await inter.response.send_message(f"Starting timer for {user.mention} at <t:{int(now)}:t>")
+    cur.execute(f"INSERT INTO time(userid, start) VALUES ({user.id}, {now})")
+    con.commit()
+    await inter.response.send_message(f"Starting timer for {user.mention} at <t:{now}:t>")
 
 
 bot.run(os.getenv('DISCORD_TOKEN'))
