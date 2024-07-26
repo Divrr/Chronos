@@ -15,8 +15,21 @@ bot = commands.Bot(
     intents=intents
 )
 
-@bot.slash_command(description="Responds with 'World'")
-async def hello(inter):
-    await inter.response.send_message("World")
+
+@bot.slash_command(description="All things timer related")
+async def time(inter):
+    pass
+
+
+@time.sub_command()
+async def start(inter: disnake.ApplicationCommandInteraction):
+    """
+    Starts a timer for you
+    """
+    now = inter.created_at.timestamp()
+    user = inter.user
+
+    await inter.response.send_message(f"Starting timer for {user.mention} at <t:{int(now)}:t>")
+
 
 bot.run(os.getenv('DISCORD_TOKEN'))
